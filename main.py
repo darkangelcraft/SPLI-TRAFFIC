@@ -177,7 +177,9 @@ if str(configured) == "null":
         os.system('sudo sysctl -w net.ipv4.conf.lo.send_redirects=0')
 
         os.system('ifconfig '+wlan+' 172.30.2.3/24')
+        os.system('route del default')
         os.system('route add default gw 172.30.2.1')
+        
         print 'host configured!'
         file = open("configured.txt", "w")
         file.write("host")
