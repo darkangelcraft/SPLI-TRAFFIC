@@ -50,7 +50,7 @@ if str(configured) == "null":
     print '\nconfiguration:'
 
     print '0) gateway'
-    print '1) host (network 1) 172.30.1.2'
+    print '1) super-host (network 1) 172.30.1.2'
     print '2) host (network 1) 172.30.1.3'
     print '3) host (network 1) 173.30.1.4'
     print '4) server (network 2) 172.30.2.2'
@@ -100,20 +100,6 @@ if str(configured) == "null":
     # CONFIGURAZIONE HOST
     elif option == '1':
         # disabilita ICMP redirect
-        os.system('sudo sysctl -w net.ipv4.conf.all.accept_redirects=0')
-        os.system('sudo sysctl -w net.ipv4.conf.all.send_redirects=0')
-
-        # default
-        os.system('sudo sysctl -w net.ipv4.conf.default.accept_redirects=0')
-        os.system('sudo sysctl -w net.ipv4.conf.default.send_redirects=0')
-
-        # dev wlan
-        os.system('sudo sysctl -w net.ipv4.conf.' + wlan + '.accept_redirects=0')
-        os.system('sudo sysctl -w net.ipv4.conf.' + wlan + '.send_redirects=0')
-
-        # lo
-        os.system('sudo sysctl -w net.ipv4.conf.lo.accept_redirects=0')
-        os.system('sudo sysctl -w net.ipv4.conf.lo.send_redirects=0')
 
         os.system('ifconfig ' + wlan + ' 172.30.1.2/24')
         os.system('route del default')
