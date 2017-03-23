@@ -52,8 +52,8 @@ if str(configured) == "null":
     print '0) gateway'
     print '1) host (network 1) 172.30.1.2'
     print '2) host (network 1) 172.30.1.3'
-    print '3) host (network 2) 173.30.2.2'
-    print '4) host (network 2) 172.30.2.3'
+    print '3) host (network 1) 173.30.1.4'
+    print '4) server (network 2) 172.30.2.2'
 
     print '\nchoose configuration:'
     option = raw_input()
