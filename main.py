@@ -259,7 +259,7 @@ else:
                 print ("172.30.1.2 is marked as superclient with MARK 21")
                 print ("172.30.1.3 is marked as client with MARK 11")
                 print ("172.30.1.4 is marked as client with MARK 11")
-                print ("172.30.2.2 is marked as server with MARK 30")
+                print ("172.30.2.2 is marked as server with MARK 30\n")
 
             # o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o #
 
@@ -273,7 +273,7 @@ else:
                 # server
                 os.system('distribution normal loss 1%')
 
-                print ("the network is hacked!")
+                print ("the network is hacked!\n")
             # o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o #
 
             #dupplicazione dei pacchetti
@@ -285,7 +285,7 @@ else:
                 # server
                 os.system('distribution normal duplicate 0.1%')
 
-                print ("the network is hacked!")
+                print ("the network is hacked!\n")
             # o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o #
 
             # corruzione dei pacchetti
@@ -297,7 +297,7 @@ else:
                 # server
                 os.system('distribution normal corrupt 0.5%')
 
-                print ("the network is hacked!")
+                print ("the network is hacked!\n")
             # o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o #
 
             # ritardo dei pacchetti
@@ -309,7 +309,7 @@ else:
                 # server
                 os.system('tc qdisc add dev ' + wlan + ' parent 1:31 handle 30: netem delay 1ms 20ms distribution normal loss 1% duplicate 0.1% corrupt 0.5% reorder 5% 15% gap 5')
 
-                print ("the network is hacked!")
+                print ("the network is hacked!\n")
             # o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o #
 
             else:
