@@ -26,8 +26,8 @@ if not start == '1':
     sys.exit(0)
 
 #il mio indirizzo IP
-#prima configurazione oppure sono un host
-if str(configured) == "null" or str(configured) == "host":
+#prima configurazione oppure sono sia client,server o superclient
+if str(configured) == "null" or str(configured) == "client" or str(configured) == "superclient" or str(configured) == "server":
     ni.ifaddresses(wlan)
     myIP = ni.ifaddresses(wlan)[2][0]['addr']
     print '- - - - - - - - - - '+myIP+' - - - - - - - - - - - \n'
@@ -50,9 +50,9 @@ if str(configured) == "null":
     print '\nconfiguration:'
 
     print '0) gateway'
-    print '1) super-host (network 1) 172.30.1.2'
-    print '2) host (network 1) 172.30.1.3'
-    print '3) host (network 1) 173.30.1.4'
+    print '1) super-client (network 1) 172.30.1.2'
+    print '2) client (network 1) 172.30.1.3'
+    print '3) client (network 1) 173.30.1.4'
     print '4) server (network 2) 172.30.2.2'
 
     print '\nchoose configuration:'
@@ -97,92 +97,44 @@ if str(configured) == "null":
         file = open("configured.txt", "w")
         file.write("gateway")
 
-    # CONFIGURAZIONE HOST
+    # CONFIGURAZIONE SUPER-CLIENT
     elif option == '1':
-        # disabilita ICMP redirect
-
         os.system('ifconfig ' + wlan + ' 172.30.1.2/24')
         os.system('route del default')
         os.system('route add default gw 172.30.1.1')
 
-        print 'host configured!'
+        print 'super-client configured!'
         file = open("configured.txt", "w")
-        file.write("host")
+        file.write("superclient")
 
+    # CONFIGURAZIONE ALTRI CLIENT
     elif option == '2':
-        # disabilita ICMP redirect
-        os.system('sudo sysctl -w net.ipv4.conf.all.accept_redirects=0')
-        os.system('sudo sysctl -w net.ipv4.conf.all.send_redirects=0')
-
-        # default
-        os.system('sudo sysctl -w net.ipv4.conf.default.accept_redirects=0')
-        os.system('sudo sysctl -w net.ipv4.conf.default.send_redirects=0')
-
-        # dev wlan
-        os.system('sudo sysctl -w net.ipv4.conf.' + wlan + '.accept_redirects=0')
-        os.system('sudo sysctl -w net.ipv4.conf.' + wlan + '.send_redirects=0')
-
-        # lo
-        os.system('sudo sysctl -w net.ipv4.conf.lo.accept_redirects=0')
-        os.system('sudo sysctl -w net.ipv4.conf.lo.send_redirects=0')
-
         os.system('ifconfig '+wlan+' 172.30.1.3/24')
         os.system('route del default')
         os.system('route add default gw 172.30.1.1')
 
-        print 'host configured!'
+        print 'normal client configured!'
         file = open("configured.txt", "w")
-        file.write("host")
+        file.write("client")
 
     elif option == '3':
-        # disabilita ICMP redirect
-        os.system('sudo sysctl -w net.ipv4.conf.all.accept_redirects=0')
-        os.system('sudo sysctl -w net.ipv4.conf.all.send_redirects=0')
+        os.system('ifconfig '+wlan+' 172.30.1.4/24')
+        os.system('route del default')
+        os.system('route add default gw 172.30.1.1')
 
-        # default
-        os.system('sudo sysctl -w net.ipv4.conf.default.accept_redirects=0')
-        os.system('sudo sysctl -w net.ipv4.conf.default.send_redirects=0')
+        print 'normal client configured!'
+        file = open("configured.txt", "w")
+        file.write("client")
 
-        # dev wlan
-        os.system('sudo sysctl -w net.ipv4.conf.' + wlan + '.accept_redirects=0')
-        os.system('sudo sysctl -w net.ipv4.conf.' + wlan + '.send_redirects=0')
-
-        # lo
-        os.system('sudo sysctl -w net.ipv4.conf.lo.accept_redirects=0')
-        os.system('sudo sysctl -w net.ipv4.conf.lo.send_redirects=0')
-
+    # CONFIGURAZIONE SERVER
+    elif option == '4':
         os.system('ifconfig '+wlan+' 172.30.2.2/24')
         os.system('route del default')
         os.system('route add default gw 172.30.2.1')
-
-        print 'host configured!'
-        file = open("configured.txt", "w")
-        file.write("host")
-
-    elif option == '4':
-        # disabilita ICMP redirect
-        os.system('sudo sysctl -w net.ipv4.conf.all.accept_redirects=0')
-        os.system('sudo sysctl -w net.ipv4.conf.all.send_redirects=0')
-
-        # default
-        os.system('sudo sysctl -w net.ipv4.conf.default.accept_redirects=0')
-        os.system('sudo sysctl -w net.ipv4.conf.default.send_redirects=0')
-
-        # dev wlan
-        os.system('sudo sysctl -w net.ipv4.conf.' + wlan + '.accept_redirects=0')
-        os.system('sudo sysctl -w net.ipv4.conf.' + wlan + '.send_redirects=0')
-
-        # lo
-        os.system('sudo sysctl -w net.ipv4.conf.lo.accept_redirects=0')
-        os.system('sudo sysctl -w net.ipv4.conf.lo.send_redirects=0')
-
-        os.system('ifconfig '+wlan+' 172.30.2.3/24')
-        os.system('route del default')
-        os.system('route add default gw 172.30.2.1')
         
-        print 'host configured!'
+        print 'server configured!'
         file = open("configured.txt", "w")
-        file.write("host")
+        file.write("server")
     else:
         print '****************** reset configuration *************************'
         file = open("configured.txt", "w")
@@ -195,14 +147,18 @@ if str(configured) == "null":
 else:
     int_option = None
 
-    print '* you are a '+str(configured)+' *'
+    print '* you are a '+str(configured)+' *\n'
 
     while int_option is None:
 
-        #sono un host
-        if str(configured) == "host":
-
-            print "1) boh"
+        #sono un client / superclient / server
+        # hanno le medesime funzioni
+        if str(configured) == "client" or str(configured) == "superclient" or str(configured) == "server":
+            print "1) hping3"
+            print "2) hping3 --fast"
+            print "natcat:"
+            print "3) send"
+            print "4) receive"
 
             try:
                 option1 = raw_input()
@@ -212,7 +168,25 @@ else:
             if option1 == '1':
                 print "insert ip target:"
                 ip = raw_input()
-                print os.system('sudo ping -f '+ip)
+                print "insert number of packet:"
+                count = raw_input()
+                print os.system('sudo hping3 -S ' + ip + ' -p 80 -c '+count)
+
+            elif option1 == '2':
+                print "insert ip target:"
+                ip = raw_input()
+                print "insert number of packet:"
+                count = raw_input()
+                print os.system('sudo hping3 -S ' + ip + ' -p 80 -c ' + count+ '--fast')
+
+            elif option1 == '3':
+                print "insert ip target:"
+                ip=raw_input()
+                os.system('sudo pv leone.jpg | nc -w 1 '+ip+' 3333')
+
+            elif option1 == '4':
+                print "waiting..."
+                os.system('sudo nc -l -p 3333 | pv -rb > leone.jpg')
 
             else:
                 print '****************** reset configuration *************************'
@@ -220,31 +194,129 @@ else:
                 file.write("null")
                 sys.exit(0)
 
-            int_option=None
+            int_option = None
 
 ###########################################################################################################
 
         # sono un gateway
         else:
-            print "1) boh"
+            print "1) create three rules"
+            print "2) marking packet"
+            print "3) hacking network"
+            print "4) duplicate packet"
+            print "5) corruption packet"
+            print "6) delay packet using netem"
+            #print "\nmodification tc class:"
+            #print "\t12) 172.30.1.2"
+            #print "\t13) 172.30.1.3"
+            #print "\t14) 172.30.1.4"
+            #print "\t22) 172.30.2.2"
 
             try:
                 option2 = raw_input()
             except SyntaxError:
                 option = None
 
+            # creazione delle classi e dei limite della banda
             if option2 == '1':
-                os.system('sudo iptables -A FORWARD -p icmp -i ra0 -m limit --limit 100/s --limit-burst 100 -j DROP')
-                print 'rule iptables ON'
-                
+                # delete previous rules
+                os.system('tc qdisc del dev ' + wlan + ' root')
+                # create tree
+                os.system('tc qdisc add dev ' + wlan + ' root handle 1: htb default 30')
+                # root class
+                os.system('tc class add dev ' + wlan + ' parent 1: classid 1:1 htb rate 2mbps ceil 3mbps burst 1mb')
+                # gold user class
+                os.system('tc class add dev ' + wlan + ' parent 1:1 classid 1:10 htb rate 400kbps ceil 600kbps burst 400kb')
+                # normal user class
+                os.system('tc class add dev ' + wlan + ' parent 1:1 classid 1:20 htb rate 150kbps ceil 180kbps burst 80kb')
+                # server class
+                os.system('tc class add dev ' + wlan + ' parent 1: classid 1:30 htb rate 1mbps ceil 1.5mbps burst 1mb')
+                # others
+                os.system('tc class add dev ' + wlan + ' parent 1:10 classid 1:11 htb rate 300kbps ceil 450kbps')
+                os.system('tc qdisc add dev ' + wlan + ' parent 1:11 handle 11: netem delay 1ms 1ms distribution normal loss 1% duplicate 0.1% corrupt 0.1% reorder 5% 15% gap 5')
+                # super user
+                os.system('tc class add dev ' + wlan + ' parent 1:20 classid 1:21 htb rate 100kbps ceil 150kbps')
+                os.system('tc qdisc add dev ' + wlan + ' parent 1:21 handle 21: netem delay 1ms 20ms distribution normal loss 1% duplicate 0.1% corrupt 0.1% reorder 5% 15% gap 5')
+                os.system('tc class add dev ' + wlan + ' parent 1:30 classid 1:31 htb rate 100kbps ceil 150kbps')
+                os.system('tc qdisc add dev ' + wlan + ' parent 1:31 handle 30: netem delay 1ms 20ms distribution normal loss 1% duplicate 0.1% corrupt 0.5% reorder 5% 15% gap 5')
+
+                # filtri
+                os.system('tc filter add dev ' + wlan + ' parent 1: prio 0 protocol ip handle 11 fw flowid 1:11')
+                os.system('tc filter add dev ' + wlan + ' parent 1: prio 0 protocol ip handle 21 fw flowid 1:21')
+                os.system('tc filter add dev ' + wlan + ' parent 1: prio 0 protocol ip handle 30 fw flowid 1:30')
+
+            # o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o #
+
+            # assegnare un mark per una specifica classe data nel punto 1
+            elif option2 == '2':
+                os.system('iptables -A PREROUTING -t mangle -i ' + wlan + ' -s 172.16.1.3 -j MARK --set-mark 21;')
+                os.system('iptables -A PREROUTING -t mangle -i ' + wlan + ' -s 172.16.1.3 -j RETURN;')
+                os.system('iptables -A PREROUTING -t mangle -i ' + wlan + ' -s 172.16.2.2 -j MARK --set-mark 30;')
+                os.system('iptables -A PREROUTING -t mangle -i ' + wlan + ' -s 172.16.2.2 -j RETURN;')
+                os.system('iptables -A PREROUTING -t mangle -i ' + wlan + ' -p icmp -j MARK --set-mark 11;')
+                os.system('iptables -A PREROUTING -t mangle -i ' + wlan + ' -p icmp -j RETURN;')
+
+                print ("172.30.1.2 is marked as superclient with MARK 21")
+                print ("172.30.1.3 is marked as client with MARK 11")
+                print ("172.30.1.4 is marked as client with MARK 11")
+                print ("172.30.2.2 is marked as server with MARK 30")
+
+            # o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o #
+
+            #packet loss, perdita di pacchetti tcp in base alle classi
+            elif option2 == '3':
+                # others
+                # os.system('distribution normal loss 70% duplicate 0.1% corrupt 0.1% reorder 5% 15% gap 5')
+                os.system('distribution normal loss 70%')
+                # super user
+                os.system('distribution normal loss 1%')
+                # server
+                os.system('distribution normal loss 1%')
+
+                print ("the network is hacked!")
+            # o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o #
+
+            #dupplicazione dei pacchetti
+            elif option2 == '4':
+                # surder
+                os.system('distribution normal duplicate 400%')
+                # normal
+                os.system('distribution normal duplicate 0.1%')
+                # server
+                os.system('distribution normal duplicate 0.1%')
+
+                print ("the network is hacked!")
+            # o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o #
+
+            # corruzione dei pacchetti
+            elif option2 == '5':
+                # surder
+                os.system('distribution normal corrupt 80%')
+                # normal
+                os.system('distribution normal corrupt 0.1%')
+                # server
+                os.system('distribution normal corrupt 0.5%')
+
+                print ("the network is hacked!")
+            # o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o #
+
+            # ritardo dei pacchetti
+            elif option2 == '6':
+                # super
+                os.system('tc qdisc add dev ' + wlan + ' parent 1:11 handle 11: netem delay 1ms 1ms distribution normal loss 1% duplicate 1% corrupt 0.1% reorder 5% 15% gap 5')
+                # normal
+                os.system('tc qdisc add dev ' + wlan + ' parent 1:21 handle 21: netem delay 499ms 1ms distribution normal loss 1% duplicate 0.1% corrupt 0.1% reorder 1% 15% gap 5')
+                # server
+                os.system('tc qdisc add dev ' + wlan + ' parent 1:31 handle 30: netem delay 1ms 20ms distribution normal loss 1% duplicate 0.1% corrupt 0.5% reorder 5% 15% gap 5')
+
+                print ("the network is hacked!")
+            # o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o #
+
             else:
                 print '****************** reset configuration *************************'
                 file = open("configured.txt", "w")
                 file.write("null")
                 sys.exit(0)
-
-
-
 
 
 
