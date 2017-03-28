@@ -159,6 +159,7 @@ else:
             print "natcat:"
             print "3) send"
             print "4) receive"
+            print "5) delete leone"
 
             try:
                 option1 = raw_input()
@@ -177,7 +178,7 @@ else:
                 ip = raw_input()
                 print "insert number of packet:"
                 count = raw_input()
-                print os.system('sudo hping3 -S ' + ip + ' -p 80 -c ' + count+ '--fast')
+                print os.system('sudo hping3 -S ' + ip + ' -p 80 -c ' + count+ ' --fast')
 
             elif option1 == '3':
                 print "insert ip target:"
@@ -187,6 +188,10 @@ else:
             elif option1 == '4':
                 print "waiting..."
                 os.system('sudo nc -l -p 3333 | pv -rb > leone.jpg')
+
+            elif option1 == '5':
+                os.system('sudo rm -f leone.jpg')
+                print "delete success!"
 
             else:
                 print '****************** reset configuration *************************'
@@ -253,8 +258,8 @@ else:
                 os.system('iptables -A PREROUTING -t mangle -i ' + wlan + ' -s 172.16.1.3 -j RETURN;')
                 os.system('iptables -A PREROUTING -t mangle -i ' + wlan + ' -s 172.16.2.2 -j MARK --set-mark 30;')
                 os.system('iptables -A PREROUTING -t mangle -i ' + wlan + ' -s 172.16.2.2 -j RETURN;')
-                os.system('iptables -A PREROUTING -t mangle -i ' + wlan + ' -p icmp -j MARK --set-mark 11;')
-                os.system('iptables -A PREROUTING -t mangle -i ' + wlan + ' -p icmp -j RETURN;')
+                os.system('iptables -A PREROUTING -t mangle -i ' + wlan + ' -p tcp -j MARK --set-mark 11;')
+                os.system('iptables -A PREROUTING -t mangle -i ' + wlan + ' -p tcp -j RETURN;')
 
                 print ("172.30.1.2 is marked as superclient with MARK 21")
                 print ("172.30.1.3 is marked as client with MARK 11")
@@ -267,35 +272,33 @@ else:
             elif option2 == '3':
                 # others
                 # os.system('distribution normal loss 70% duplicate 0.1% corrupt 0.1% reorder 5% 15% gap 5')
-                os.system('distribution normal loss 70%')
+                os.system('tc qdisc add dev ' + wlan + ' parent 1:11 handle 11: netem delay 1ms 1ms distribution normal loss 70%')
                 # super user
-                os.system('distribution normal loss 1%')
-                # server
-                os.system('distribution normal loss 1%')
+                os.system('tc qdisc add dev ' + wlan + ' parent 1:21 handle 21: netem delay 1ms 20ms distribution normal loss 1%')
 
                 print ("the network is hacked!\n")
             # o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o #
 
             #dupplicazione dei pacchetti
             elif option2 == '4':
-                # surder
-                os.system('distribution normal duplicate 400%')
-                # normal
-                os.system('distribution normal duplicate 0.1%')
-                # server
-                os.system('distribution normal duplicate 0.1%')
+                # others
+                # os.system('distribution normal loss 70% duplicate 0.1% corrupt 0.1% reorder 5% 15% gap 5')
+                os.system('tc qdisc add dev ' + wlan + ' parent 1:11 handle 11: netem delay 1ms 1ms duplicate 70%')
+                # super user
+                os.system('tc qdisc add dev ' + wlan + ' parent 1:21 handle 21: netem delay 1ms 20ms duplicate 1%')
+
+                print ("the network is hacked!\n")
 
                 print ("the network is hacked!\n")
             # o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o #
 
             # corruzione dei pacchetti
             elif option2 == '5':
-                # surder
-                os.system('distribution normal corrupt 80%')
-                # normal
-                os.system('distribution normal corrupt 0.1%')
-                # server
-                os.system('distribution normal corrupt 0.5%')
+                # others
+                # os.system('distribution normal loss 70% duplicate 0.1% corrupt 0.1% reorder 5% 15% gap 5')
+                os.system('tc qdisc add dev ' + wlan + ' parent 1:11 handle 11: netem delay 1ms 1ms distribution normal corrupt 70%')
+                # super user
+                os.system('tc qdisc add dev ' + wlan + ' parent 1:21 handle 21: netem delay 1ms 20ms distribution normal corrupt 1%')
 
                 print ("the network is hacked!\n")
             # o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o #
