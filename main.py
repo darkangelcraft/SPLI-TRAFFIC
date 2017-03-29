@@ -156,10 +156,10 @@ else:
         if str(configured) == "client" or str(configured) == "superclient" or str(configured) == "server":
             print "1) hping3"
             print "2) hping3 --fast"
-            print "natcat:"
+            print "\nnetcat:"
             print "3) send"
             print "4) receive"
-            print "5) delete leone"
+            print "5) file delete"
 
             try:
                 option1 = raw_input()
@@ -167,18 +167,14 @@ else:
                 option = None
 
             if option1 == '1':
-                print "insert ip target:"
-                ip = raw_input()
                 print "insert number of packet:"
                 count = raw_input()
-                print os.system('sudo hping3 -S ' + ip + ' -p 80 -c '+count)
+                print os.system('sudo hping3 -S 172.30.2.2 -p 80 -c '+count)
 
             elif option1 == '2':
-                print "insert ip target:"
-                ip = raw_input()
                 print "insert number of packet:"
                 count = raw_input()
-                print os.system('sudo hping3 -S ' + ip + ' -p 80 -c ' + count+ ' --fast')
+                print os.system('sudo hping3 -S 172.30.2.2 -p 80 -c ' + count+ ' --fast')
 
             elif option1 == '3':
                 print "insert ip target:"
@@ -205,25 +201,33 @@ else:
 
         # sono un gateway
         else:
-            print "1) create three rules"
-            print "2) marking packet"
-            print "3) hacking network"
-            print "4) duplicate packet"
-            print "5) corruption packet"
-            print "6) delay packet using netem"
-            #print "\nmodification tc class:"
-            #print "\t12) 172.30.1.2"
-            #print "\t13) 172.30.1.3"
-            #print "\t14) 172.30.1.4"
-            #print "\t22) 172.30.2.2"
+            print "1) setup iptables mangle"
+            print "2) create root tree"
+            print "3) packet loss"
+            print "4) packet duplication"
+            print "5) packet corruption"
+            print "6) packet delay"
 
             try:
                 option2 = raw_input()
             except SyntaxError:
                 option = None
 
-            # creazione delle classi e dei limite della banda
+            # assegnare un mark per una specifica classe data nel punto 1
             if option2 == '1':
+                os.system('iptables -A PREROUTING -t mangle -i ' + wlan + ' -s 172.30.1.2 -j MARK --set-mark 21')
+                os.system('iptables -A PREROUTING -t mangle -i ' + wlan + ' -s 172.30.2.2 -j MARK --set-mark 30')
+                os.system('iptables -A PREROUTING -t mangle -i ' + wlan + ' -p tcp -j MARK --set-mark 11')
+
+                print ("172.30.1.2 is marked as superclient with MARK 21")
+                print ("172.30.1.3 is marked as client with MARK 11")
+                print ("172.30.1.4 is marked as client with MARK 11")
+                print ("172.30.2.2 is marked as server with MARK 30\n")
+
+                # o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o #
+
+            # creazione delle classi e dei limite della banda
+            elif option2 == '2':
                 # delete previous rules
                 os.system('tc qdisc del dev ' + wlan + ' root')
                 # create tree
@@ -236,14 +240,20 @@ else:
                 os.system('tc class add dev ' + wlan + ' parent 1:1 classid 1:20 htb rate 150kbps ceil 180kbps burst 80kb')
                 # server class
                 os.system('tc class add dev ' + wlan + ' parent 1: classid 1:30 htb rate 1mbps ceil 1.5mbps burst 1mb')
-                # others
-                os.system('tc class add dev ' + wlan + ' parent 1:10 classid 1:11 htb rate 300kbps ceil 450kbps')
-                os.system('tc qdisc add dev ' + wlan + ' parent 1:11 handle 11: netem delay 1ms 1ms distribution normal loss 1% duplicate 0.1% corrupt 0.1% reorder 5% 15% gap 5')
+
+                #TRAFFIC CONTROL RULES
+
                 # super user
                 os.system('tc class add dev ' + wlan + ' parent 1:20 classid 1:21 htb rate 100kbps ceil 150kbps')
                 os.system('tc qdisc add dev ' + wlan + ' parent 1:21 handle 21: netem delay 1ms 20ms distribution normal loss 1% duplicate 0.1% corrupt 0.1% reorder 5% 15% gap 5')
+
+                #server
                 os.system('tc class add dev ' + wlan + ' parent 1:30 classid 1:31 htb rate 100kbps ceil 150kbps')
                 os.system('tc qdisc add dev ' + wlan + ' parent 1:31 handle 30: netem delay 1ms 20ms distribution normal loss 1% duplicate 0.1% corrupt 0.5% reorder 5% 15% gap 5')
+
+                # others
+                os.system('tc class add dev ' + wlan + ' parent 1:10 classid 1:11 htb rate 300kbps ceil 450kbps')
+                os.system('tc qdisc add dev ' + wlan + ' parent 1:11 handle 11: netem delay 1ms 1ms distribution normal loss 1% duplicate 0.1% corrupt 0.1% reorder 5% 15% gap 5')
 
                 # filtri
                 os.system('tc filter add dev ' + wlan + ' parent 1: prio 0 protocol ip handle 11 fw flowid 1:11')
@@ -252,67 +262,68 @@ else:
 
             # o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o #
 
-            # assegnare un mark per una specifica classe data nel punto 1
-            elif option2 == '2':
-                os.system('iptables -A PREROUTING -t mangle -i ' + wlan + ' -s 172.16.1.3 -j MARK --set-mark 21;')
-                os.system('iptables -A PREROUTING -t mangle -i ' + wlan + ' -s 172.16.1.3 -j RETURN;')
-                os.system('iptables -A PREROUTING -t mangle -i ' + wlan + ' -s 172.16.2.2 -j MARK --set-mark 30;')
-                os.system('iptables -A PREROUTING -t mangle -i ' + wlan + ' -s 172.16.2.2 -j RETURN;')
-                os.system('iptables -A PREROUTING -t mangle -i ' + wlan + ' -p tcp -j MARK --set-mark 11;')
-                os.system('iptables -A PREROUTING -t mangle -i ' + wlan + ' -p tcp -j RETURN;')
-
-                print ("172.30.1.2 is marked as superclient with MARK 21")
-                print ("172.30.1.3 is marked as client with MARK 11")
-                print ("172.30.1.4 is marked as client with MARK 11")
-                print ("172.30.2.2 is marked as server with MARK 30\n")
-
-            # o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o #
-
             #packet loss, perdita di pacchetti tcp in base alle classi
             elif option2 == '3':
+                print "insert % packet lost for handle 11:"
+                param1= raw_input()
                 # others
-                # os.system('distribution normal loss 70% duplicate 0.1% corrupt 0.1% reorder 5% 15% gap 5')
-                os.system('tc qdisc add dev ' + wlan + ' parent 1:11 handle 11: netem delay 1ms 1ms distribution normal loss 70%')
+                os.system('tc qdisc add dev ' + wlan + ' parent 1:10 handle 1:11 htb rate 100kbps ceil 200kbps')
+                os.system('tc qdisc add dev ' + wlan + ' parent 1:11 handle 11: netem delay 1ms 1ms distribution normal loss '+param1+'% '+'duplicate 0.1% corrupt 0.1% reorder 5% 15% gap 5')
+                print "insert % packet lost for handle 21:"
+                param2 = raw_input()
                 # super user
-                os.system('tc qdisc add dev ' + wlan + ' parent 1:21 handle 21: netem delay 1ms 20ms distribution normal loss 1%')
+                os.system('tc qdisc add dev ' + wlan + ' parent 1:20 handle 1:21 htb rate 100kbps ceil 200kbps')
+                os.system('tc qdisc add dev ' + wlan + ' parent 1:21 handle 21: netem delay 1ms 20ms distribution normal loss '+param2+'% '+'duplicate 0.1% corrupt 0.1% reorder 5% 15% gap 5')
 
-                print ("the network is hacked!\n")
+                print ("Done!\n")
             # o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o #
 
             #dupplicazione dei pacchetti
             elif option2 == '4':
+                print "insert % packet duplication for handle 11:"
+                param1 = raw_input()
                 # others
-                # os.system('distribution normal loss 70% duplicate 0.1% corrupt 0.1% reorder 5% 15% gap 5')
-                os.system('tc qdisc add dev ' + wlan + ' parent 1:11 handle 11: netem delay 1ms 1ms duplicate 70%')
+                os.system('tc qdisc add dev ' + wlan + ' parent 1:10 handle 1:11 htb rate 100kbps ceil 200kbps')
+                os.system('tc qdisc add dev ' + wlan + ' parent 1:11 handle 11: netem delay 1ms 1ms distribution normal loss 1% duplicate '+param1+'% corrupt 0.1% reorder 5% 15% gap 5')
+                print "insert % packet duplication for handle 21:"
+                param2 = raw_input()
                 # super user
-                os.system('tc qdisc add dev ' + wlan + ' parent 1:21 handle 21: netem delay 1ms 20ms duplicate 1%')
+                os.system('tc qdisc add dev ' + wlan + ' parent 1:20 handle 1:21 htb rate 100kbps ceil 200kbps')
+                os.system('tc qdisc add dev ' + wlan + ' parent 1:21 handle 21: netem delay 1ms 20ms distribution normal loss 1% duplicate '+param2+'% corrupt 0.1% reorder 5% 15% gap 5')
 
-                print ("the network is hacked!\n")
-
-                print ("the network is hacked!\n")
+                print ("Done!\n")
             # o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o #
 
             # corruzione dei pacchetti
             elif option2 == '5':
+                print "insert % packet corruption for handle 11:"
+                param1 = raw_input()
                 # others
-                # os.system('distribution normal loss 70% duplicate 0.1% corrupt 0.1% reorder 5% 15% gap 5')
-                os.system('tc qdisc add dev ' + wlan + ' parent 1:11 handle 11: netem delay 1ms 1ms distribution normal corrupt 70%')
+                os.system('tc qdisc add dev ' + wlan + ' parent 1:10 handle 1:11 htb rate 100kbps ceil 200kbps')
+                os.system('tc qdisc add dev ' + wlan + ' parent 1:11 handle 11: netem delay 1ms 1ms distribution normal loss 1% duplicate 1% corrupt '+param1+'% reorder 5% 15% gap 5')
+                print "insert % packet corruption for handle 21:"
+                param2 = raw_input()
                 # super user
-                os.system('tc qdisc add dev ' + wlan + ' parent 1:21 handle 21: netem delay 1ms 20ms distribution normal corrupt 1%')
+                os.system('tc qdisc add dev ' + wlan + ' parent 1:20 handle 1:21 htb rate 100kbps ceil 200kbps')
+                os.system('tc qdisc add dev ' + wlan + ' parent 1:21 handle 21: netem delay 1ms 20ms distribution normal loss 1% duplicate 0.1% corrupt '+param2+'% reorder 5% 15% gap 5')
 
-                print ("the network is hacked!\n")
+                print ("Done!\n")
             # o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o #
 
             # ritardo dei pacchetti
             elif option2 == '6':
-                # super
-                os.system('tc qdisc add dev ' + wlan + ' parent 1:11 handle 11: netem delay 1ms 1ms distribution normal loss 1% duplicate 1% corrupt 0.1% reorder 5% 15% gap 5')
-                # normal
-                os.system('tc qdisc add dev ' + wlan + ' parent 1:21 handle 21: netem delay 499ms 1ms distribution normal loss 1% duplicate 0.1% corrupt 0.1% reorder 1% 15% gap 5')
-                # server
-                os.system('tc qdisc add dev ' + wlan + ' parent 1:31 handle 30: netem delay 1ms 20ms distribution normal loss 1% duplicate 0.1% corrupt 0.5% reorder 5% 15% gap 5')
+                print "insert % packet delay for handle 11:"
+                param1 = raw_input()
+                # others
+                os.system('tc qdisc add dev ' + wlan + ' parent 1:10 handle 1:11 htb rate 100kbps ceil 200kbps')
+                os.system('tc qdisc add dev ' + wlan + ' parent 1:11 handle 11: netem delay '+param1+'ms 1ms distribution normal loss 1% duplicate 1% corrupt 0.1% reorder 5% 15% gap 5')
+                print "insert % packet delay for handle 21:"
+                param2 = raw_input()
+                # super user
+                os.system('tc qdisc add dev ' + wlan + ' parent 1:20 handle 1:21 htb rate 100kbps ceil 200kbps')
+                os.system('tc qdisc add dev ' + wlan + ' parent 1:21 handle 21: netem delay '+param2+'ms 20ms distribution normal loss 1% duplicate 0.1% corrupt 0.1% reorder 5% 15% gap 5')
 
-                print ("the network is hacked!\n")
+                print ("Done!\n")
             # o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o #
 
             else:
