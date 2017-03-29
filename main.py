@@ -159,7 +159,7 @@ else:
             print "\nnetcat:"
             print "3) send"
             print "4) receive"
-            print "5) file delete"
+            print "5) file deletion"
 
             try:
                 option1 = raw_input()
