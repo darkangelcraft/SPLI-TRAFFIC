@@ -167,9 +167,16 @@ else:
                 option = None
 
             if option1 == '1':
-                print "insert number of packet:"
-                count = raw_input()
-                print os.system('sudo hping3 -S 172.30.2.2 -p 80 -c '+count)
+                if str(configured) == "server":
+                    print "insert ip target:"
+                    ip=raw_input()
+                    print "insert number of packet:"
+                    count = raw_input()
+                    print os.system('sudo hping3 -S '+ip+' -p 80 -c ' + count)
+                else:
+                    print "insert number of packet:"
+                    count = raw_input()
+                    print os.system('sudo hping3 -S 172.30.2.2 -p 80 -c '+count)
 
             elif option1 == '2':
                 print "insert number of packet:"
@@ -264,6 +271,43 @@ else:
 
             #packet loss, perdita di pacchetti tcp in base alle classi
             elif option2 == '3':
+                # delete previous rules
+                os.system('tc qdisc del dev ' + wlan + ' root')
+                # create tree
+                os.system('tc qdisc add dev ' + wlan + ' root handle 1: htb default 30')
+                # root class
+                os.system('tc class add dev ' + wlan + ' parent 1: classid 1:1 htb rate 2mbps ceil 3mbps burst 1mb')
+                # gold user class
+                os.system(
+                    'tc class add dev ' + wlan + ' parent 1:1 classid 1:10 htb rate 400kbps ceil 600kbps burst 400kb')
+                # normal user class
+                os.system(
+                    'tc class add dev ' + wlan + ' parent 1:1 classid 1:20 htb rate 150kbps ceil 180kbps burst 80kb')
+                # server class
+                os.system('tc class add dev ' + wlan + ' parent 1: classid 1:30 htb rate 1mbps ceil 1.5mbps burst 1mb')
+
+                # TRAFFIC CONTROL RULES
+
+                # super user
+                os.system('tc class add dev ' + wlan + ' parent 1:20 classid 1:21 htb rate 100kbps ceil 150kbps')
+                os.system(
+                    'tc qdisc add dev ' + wlan + ' parent 1:21 handle 21: netem delay 1ms 20ms distribution normal loss 1% duplicate 0.1% corrupt 0.1% reorder 5% 15% gap 5')
+
+                # server
+                os.system('tc class add dev ' + wlan + ' parent 1:30 classid 1:31 htb rate 100kbps ceil 150kbps')
+                os.system(
+                    'tc qdisc add dev ' + wlan + ' parent 1:31 handle 30: netem delay 1ms 20ms distribution normal loss 1% duplicate 0.1% corrupt 0.5% reorder 5% 15% gap 5')
+
+                # others
+                os.system('tc class add dev ' + wlan + ' parent 1:10 classid 1:11 htb rate 300kbps ceil 450kbps')
+                os.system(
+                    'tc qdisc add dev ' + wlan + ' parent 1:11 handle 11: netem delay 1ms 1ms distribution normal loss 1% duplicate 0.1% corrupt 0.1% reorder 5% 15% gap 5')
+
+                # filtri
+                os.system('tc filter add dev ' + wlan + ' parent 1: prio 0 protocol ip handle 11 fw flowid 1:11')
+                os.system('tc filter add dev ' + wlan + ' parent 1: prio 0 protocol ip handle 21 fw flowid 1:21')
+                os.system('tc filter add dev ' + wlan + ' parent 1: prio 0 protocol ip handle 30 fw flowid 1:30')
+
                 print "insert % packet lost for handle 11:"
                 param1= raw_input()
                 # others
@@ -280,6 +324,43 @@ else:
 
             #dupplicazione dei pacchetti
             elif option2 == '4':
+                # delete previous rules
+                os.system('tc qdisc del dev ' + wlan + ' root')
+                # create tree
+                os.system('tc qdisc add dev ' + wlan + ' root handle 1: htb default 30')
+                # root class
+                os.system('tc class add dev ' + wlan + ' parent 1: classid 1:1 htb rate 2mbps ceil 3mbps burst 1mb')
+                # gold user class
+                os.system(
+                    'tc class add dev ' + wlan + ' parent 1:1 classid 1:10 htb rate 400kbps ceil 600kbps burst 400kb')
+                # normal user class
+                os.system(
+                    'tc class add dev ' + wlan + ' parent 1:1 classid 1:20 htb rate 150kbps ceil 180kbps burst 80kb')
+                # server class
+                os.system('tc class add dev ' + wlan + ' parent 1: classid 1:30 htb rate 1mbps ceil 1.5mbps burst 1mb')
+
+                # TRAFFIC CONTROL RULES
+
+                # super user
+                os.system('tc class add dev ' + wlan + ' parent 1:20 classid 1:21 htb rate 100kbps ceil 150kbps')
+                os.system(
+                    'tc qdisc add dev ' + wlan + ' parent 1:21 handle 21: netem delay 1ms 20ms distribution normal loss 1% duplicate 0.1% corrupt 0.1% reorder 5% 15% gap 5')
+
+                # server
+                os.system('tc class add dev ' + wlan + ' parent 1:30 classid 1:31 htb rate 100kbps ceil 150kbps')
+                os.system(
+                    'tc qdisc add dev ' + wlan + ' parent 1:31 handle 30: netem delay 1ms 20ms distribution normal loss 1% duplicate 0.1% corrupt 0.5% reorder 5% 15% gap 5')
+
+                # others
+                os.system('tc class add dev ' + wlan + ' parent 1:10 classid 1:11 htb rate 300kbps ceil 450kbps')
+                os.system(
+                    'tc qdisc add dev ' + wlan + ' parent 1:11 handle 11: netem delay 1ms 1ms distribution normal loss 1% duplicate 0.1% corrupt 0.1% reorder 5% 15% gap 5')
+
+                # filtri
+                os.system('tc filter add dev ' + wlan + ' parent 1: prio 0 protocol ip handle 11 fw flowid 1:11')
+                os.system('tc filter add dev ' + wlan + ' parent 1: prio 0 protocol ip handle 21 fw flowid 1:21')
+                os.system('tc filter add dev ' + wlan + ' parent 1: prio 0 protocol ip handle 30 fw flowid 1:30')
+
                 print "insert % packet duplication for handle 11:"
                 param1 = raw_input()
                 # others
@@ -296,6 +377,43 @@ else:
 
             # corruzione dei pacchetti
             elif option2 == '5':
+                # delete previous rules
+                os.system('tc qdisc del dev ' + wlan + ' root')
+                # create tree
+                os.system('tc qdisc add dev ' + wlan + ' root handle 1: htb default 30')
+                # root class
+                os.system('tc class add dev ' + wlan + ' parent 1: classid 1:1 htb rate 2mbps ceil 3mbps burst 1mb')
+                # gold user class
+                os.system(
+                    'tc class add dev ' + wlan + ' parent 1:1 classid 1:10 htb rate 400kbps ceil 600kbps burst 400kb')
+                # normal user class
+                os.system(
+                    'tc class add dev ' + wlan + ' parent 1:1 classid 1:20 htb rate 150kbps ceil 180kbps burst 80kb')
+                # server class
+                os.system('tc class add dev ' + wlan + ' parent 1: classid 1:30 htb rate 1mbps ceil 1.5mbps burst 1mb')
+
+                # TRAFFIC CONTROL RULES
+
+                # super user
+                os.system('tc class add dev ' + wlan + ' parent 1:20 classid 1:21 htb rate 100kbps ceil 150kbps')
+                os.system(
+                    'tc qdisc add dev ' + wlan + ' parent 1:21 handle 21: netem delay 1ms 20ms distribution normal loss 1% duplicate 0.1% corrupt 0.1% reorder 5% 15% gap 5')
+
+                # server
+                os.system('tc class add dev ' + wlan + ' parent 1:30 classid 1:31 htb rate 100kbps ceil 150kbps')
+                os.system(
+                    'tc qdisc add dev ' + wlan + ' parent 1:31 handle 30: netem delay 1ms 20ms distribution normal loss 1% duplicate 0.1% corrupt 0.5% reorder 5% 15% gap 5')
+
+                # others
+                os.system('tc class add dev ' + wlan + ' parent 1:10 classid 1:11 htb rate 300kbps ceil 450kbps')
+                os.system(
+                    'tc qdisc add dev ' + wlan + ' parent 1:11 handle 11: netem delay 1ms 1ms distribution normal loss 1% duplicate 0.1% corrupt 0.1% reorder 5% 15% gap 5')
+
+                # filtri
+                os.system('tc filter add dev ' + wlan + ' parent 1: prio 0 protocol ip handle 11 fw flowid 1:11')
+                os.system('tc filter add dev ' + wlan + ' parent 1: prio 0 protocol ip handle 21 fw flowid 1:21')
+                os.system('tc filter add dev ' + wlan + ' parent 1: prio 0 protocol ip handle 30 fw flowid 1:30')
+
                 print "insert % packet corruption for handle 11:"
                 param1 = raw_input()
                 # others
@@ -312,6 +430,43 @@ else:
 
             # ritardo dei pacchetti
             elif option2 == '6':
+                # delete previous rules
+                os.system('tc qdisc del dev ' + wlan + ' root')
+                # create tree
+                os.system('tc qdisc add dev ' + wlan + ' root handle 1: htb default 30')
+                # root class
+                os.system('tc class add dev ' + wlan + ' parent 1: classid 1:1 htb rate 2mbps ceil 3mbps burst 1mb')
+                # gold user class
+                os.system(
+                    'tc class add dev ' + wlan + ' parent 1:1 classid 1:10 htb rate 400kbps ceil 600kbps burst 400kb')
+                # normal user class
+                os.system(
+                    'tc class add dev ' + wlan + ' parent 1:1 classid 1:20 htb rate 150kbps ceil 180kbps burst 80kb')
+                # server class
+                os.system('tc class add dev ' + wlan + ' parent 1: classid 1:30 htb rate 1mbps ceil 1.5mbps burst 1mb')
+
+                # TRAFFIC CONTROL RULES
+
+                # super user
+                os.system('tc class add dev ' + wlan + ' parent 1:20 classid 1:21 htb rate 100kbps ceil 150kbps')
+                os.system(
+                    'tc qdisc add dev ' + wlan + ' parent 1:21 handle 21: netem delay 1ms 20ms distribution normal loss 1% duplicate 0.1% corrupt 0.1% reorder 5% 15% gap 5')
+
+                # server
+                os.system('tc class add dev ' + wlan + ' parent 1:30 classid 1:31 htb rate 100kbps ceil 150kbps')
+                os.system(
+                    'tc qdisc add dev ' + wlan + ' parent 1:31 handle 30: netem delay 1ms 20ms distribution normal loss 1% duplicate 0.1% corrupt 0.5% reorder 5% 15% gap 5')
+
+                # others
+                os.system('tc class add dev ' + wlan + ' parent 1:10 classid 1:11 htb rate 300kbps ceil 450kbps')
+                os.system(
+                    'tc qdisc add dev ' + wlan + ' parent 1:11 handle 11: netem delay 1ms 1ms distribution normal loss 1% duplicate 0.1% corrupt 0.1% reorder 5% 15% gap 5')
+
+                # filtri
+                os.system('tc filter add dev ' + wlan + ' parent 1: prio 0 protocol ip handle 11 fw flowid 1:11')
+                os.system('tc filter add dev ' + wlan + ' parent 1: prio 0 protocol ip handle 21 fw flowid 1:21')
+                os.system('tc filter add dev ' + wlan + ' parent 1: prio 0 protocol ip handle 30 fw flowid 1:30')
+
                 print "insert % packet delay for handle 11:"
                 param1 = raw_input()
                 # others
