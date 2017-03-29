@@ -408,7 +408,7 @@ else:
                 # filtri
                 os.system('tc filter add dev ' + wlan + ' parent 1: prio 0 protocol ip handle 11 fw flowid 1:11')
                 os.system('tc filter add dev ' + wlan + ' parent 1: prio 0 protocol ip handle 21 fw flowid 1:21')
-                os.system('tc filter add dev ' + wlan + ' parent 1: prio 0 protocol ip handle 30 fw flowid 1:30')
+                os.system('tc filter add dev ' + wlan + ' parent 1: prio 0 protocol ip handle 30 fw flowid 1:30') 
 
                 print ("Done!\n")
             # o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o o #
